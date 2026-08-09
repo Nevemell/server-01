@@ -1,0 +1,11 @@
+Package: easy-rsa-ca
+Version: 0.1-1
+Architecture: all
+Maintainer: SysAdmin <sysadmin@company.ru>
+Installed-Size: 12
+Depends: easy-rsa (>= 3.0)
+Section: net
+Priority: optional
+Homepage: <insert the upstream URL, if relevant>
+Description: CA utilities with configs and scripts
+ Utilities to bootstrap a CA with Easy-RSA and basic firewall rules.

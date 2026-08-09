@@ -1,0 +1,8 @@
+[user]
+	name = Nevemell
+[init]
+	defaultBranch = server-01
+[save]
+	directory = /
+[safe]
+	directory = /home/config-repo

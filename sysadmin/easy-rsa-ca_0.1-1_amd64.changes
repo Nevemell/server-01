@@ -1,0 +1,35 @@
+Format: 1.8
+Date: Wed, 29 Jul 2026 07:22:25 +0000
+Source: easy-rsa-ca
+Binary: easy-rsa-ca
+Built-For-Profiles: noudeb
+Architecture: source all
+Version: 0.1-1
+Distribution: UNRELEASED
+Urgency: medium
+Maintainer: SysAdmin <sysadmin@company.ru>
+Changed-By: SysAdmin <sysadmin@company.ru>
+Description:
+ easy-rsa-ca - CA utilities with configs and scripts
+Changes:
+ easy-rsa-ca (0.1-1) UNRELEASED; urgency=medium
+ .
+   * Initial release
+Checksums-Sha1:
+ 4b654be7c89c719dc35e81be5e7eba6e6dd5155e 834 easy-rsa-ca_0.1-1.dsc
+ 19e7f8db4b45b781445a5c2bd3ee98a803c1ddcb 792 easy-rsa-ca_0.1.orig.tar.xz
+ 3542bfc3c1c7142084aaabe1485163008dd6046b 2316 easy-rsa-ca_0.1-1.debian.tar.xz
+ 5167c38c24df074ce1eca757fad15722d6ad2df0 2732 easy-rsa-ca_0.1-1_all.deb
+ 88d544c8aeb85a1ac91b7f36a7bd9eb2422971af 6269 easy-rsa-ca_0.1-1_amd64.buildinfo
+Checksums-Sha256:
+ b1035e5852d4dbbbd787d7c35d467ee41d7d04573d7a12f620608b309862364c 834 easy-rsa-ca_0.1-1.dsc
+ ab45f483164d5c52c9074555ff67fa73a29ff3658b190289eca6cf92c95dd461 792 easy-rsa-ca_0.1.orig.tar.xz
+ 12d9be42e8909a2bc16551f37156c2da818f9ccbcbe8c211058a49be76e6f88b 2316 easy-rsa-ca_0.1-1.debian.tar.xz
+ df9838c687e9e003081af05974e1fa42bbf1c8c9e328c4b2676f678ab2f69398 2732 easy-rsa-ca_0.1-1_all.deb
+ bcdc24f3ce5e96e2c85f819fdc6ab6a93728e894f294b08483c811bfd5c28d94 6269 easy-rsa-ca_0.1-1_amd64.buildinfo
+Files:
+ e649ef4928dfda8a393f274d1f0fdd4d 834 unknown optional easy-rsa-ca_0.1-1.dsc
+ 8f132a0c31806199806ef96b72ff8568 792 unknown optional easy-rsa-ca_0.1.orig.tar.xz
+ 987ec16e43c70ec0162f85212f66f957 2316 unknown optional easy-rsa-ca_0.1-1.debian.tar.xz
+ e570d084830f3e0361ef7f3f58b42a90 2732 net optional easy-rsa-ca_0.1-1_all.deb
+ e907bf8b1ac6cb30d6cb631763119a09 6269 unknown optional easy-rsa-ca_0.1-1_amd64.buildinfo

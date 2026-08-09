@@ -1,0 +1,22 @@
+Source: easy-rsa-ca
+Section: unknown
+Priority: optional
+Maintainer: SysAdmin <sysadmin@company.ru>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13),
+Standards-Version: 4.6.2
+Homepage: <insert the upstream URL, if relevant>
+#Vcs-Browser: https://salsa.debian.org/debian/easy-rsa-ca
+#Vcs-Git: https://salsa.debian.org/debian/easy-rsa-ca.git
+
+Package: easy-rsa-ca
+Version: 0.1.0
+Section: net
+Priority: optional
+Architecture: all
+Depends: easy-rsa (>= 3.0)
+Maintainer: you@example.com
+Description: CA utilities with configs and scripts
+ Utilities to bootstrap a CA with Easy-RSA and basic firewall rules.
+

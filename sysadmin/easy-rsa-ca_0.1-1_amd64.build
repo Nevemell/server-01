@@ -1,0 +1,65 @@
+ dpkg-buildpackage -us -uc -ui
+dpkg-buildpackage: info: source package easy-rsa-ca
+dpkg-buildpackage: info: source version 0.1-1
+dpkg-buildpackage: info: source distribution UNRELEASED
+dpkg-buildpackage: info: source changed by SysAdmin <sysadmin@company.ru>
+ dpkg-source --before-build .
+dpkg-buildpackage: info: host architecture amd64
+dpkg-source: warning: unknown information field 'Version' in input data in binary package stanza of template control file
+dpkg-source: warning: unknown information field 'Maintainer' in input data in binary package stanza of template control file
+ debian/rules clean
+dh clean
+   dh_clean
+ dpkg-source -b .
+dpkg-source: warning: unknown information field 'Version' in input data in binary package stanza of template control file
+dpkg-source: warning: unknown information field 'Maintainer' in input data in binary package stanza of template control file
+dpkg-source: info: using source format '3.0 (quilt)'
+dpkg-source: info: building easy-rsa-ca using existing ./easy-rsa-ca_0.1.orig.tar.xz
+dpkg-source: info: building easy-rsa-ca in easy-rsa-ca_0.1-1.debian.tar.xz
+dpkg-source: info: building easy-rsa-ca in easy-rsa-ca_0.1-1.dsc
+ debian/rules binary
+dh binary
+   dh_update_autotools_config
+   dh_autoreconf
+   create-stamp debian/debhelper-build-stamp
+   dh_prep
+   dh_auto_install --destdir=debian/easy-rsa-ca/
+   dh_install
+   dh_installdocs
+   dh_installchangelogs
+   dh_perl
+   dh_link
+   dh_strip_nondeterminism
+   dh_compress
+   dh_fixperms
+   dh_missing
+   dh_installdeb
+   dh_gencontrol
+dpkg-gencontrol: warning: unknown information field 'Version' in input data in binary package stanza of template control file
+dpkg-gencontrol: warning: unknown information field 'Maintainer' in input data in binary package stanza of template control file
+   dh_md5sums
+   dh_builddeb
+dpkg-deb: building package 'easy-rsa-ca' in '../easy-rsa-ca_0.1-1_all.deb'.
+ dpkg-genbuildinfo -O../easy-rsa-ca_0.1-1_amd64.buildinfo
+ dpkg-genchanges -O../easy-rsa-ca_0.1-1_amd64.changes
+dpkg-genchanges: warning: unknown information field 'Version' in input data in binary package stanza of template control file
+dpkg-genchanges: warning: unknown information field 'Maintainer' in input data in binary package stanza of template control file
+dpkg-genchanges: info: including full source code in upload
+ dpkg-source --after-build .
+dpkg-source: warning: unknown information field 'Version' in input data in binary package stanza of template control file
+dpkg-source: warning: unknown information field 'Maintainer' in input data in binary package stanza of template control file
+dpkg-buildpackage: info: full upload (original source is included)
+Now running lintian easy-rsa-ca_0.1-1_amd64.changes ...
+E: easy-rsa-ca: copyright-contains-dh_make-todo-boilerplate
+E: easy-rsa-ca source: debian-rules-is-dh_make-template [debian/rules:22]
+E: easy-rsa-ca: dir-or-file-in-home [home/setup_ca.sh]
+E: easy-rsa-ca: helper-templates-in-copyright
+W: easy-rsa-ca source: bad-homepage <insert the upstream URL, if relevant>
+W: easy-rsa-ca: bad-homepage <insert the upstream URL, if relevant>
+W: easy-rsa-ca: copyright-has-url-from-dh_make-boilerplate
+W: easy-rsa-ca source: debhelper-but-no-misc-depends easy-rsa-ca
+W: easy-rsa-ca: initial-upload-closes-no-bugs [usr/share/doc/easy-rsa-ca/changelog.Debian.gz:1]
+W: easy-rsa-ca source: space-in-std-shortname-in-dep5-copyright <special license> [debian/copyright:11]
+W: easy-rsa-ca source: superfluous-clutter-in-homepage <insert the upstream URL, if relevant>
+W: easy-rsa-ca: superfluous-clutter-in-homepage <insert the upstream URL, if relevant>
+Finished running lintian.
