@@ -1,0 +1,35 @@
+Format: 1.8
+Date: Mon, 17 Aug 2026 13:25:11 +0000
+Source: vpn-ca-utils
+Binary: vpn-ca-utils
+Built-For-Profiles: noudeb
+Architecture: source all
+Version: 0.1-1
+Distribution: UNRELEASED
+Urgency: medium
+Maintainer: SysAdmin <sysadmin@company.ru>
+Changed-By: SysAdmin <sysadmin@company.ru>
+Description:
+ vpn-ca-utils - <insert up to 60 chars description>
+Changes:
+ vpn-ca-utils (0.1-1) UNRELEASED; urgency=medium
+ .
+   * Initial release.
+Checksums-Sha1:
+ 0fc0cc428569f7de0142f61ad03c4f0b9bb1cebd 850 vpn-ca-utils_0.1-1.dsc
+ b9a42c3b9f69de31276eb7007d19f5fdb43e258b 5648 vpn-ca-utils_0.1.orig.tar.xz
+ 74e2f539855a6c6b6377e58b6fbd581bf8e20f13 2328 vpn-ca-utils_0.1-1.debian.tar.xz
+ 64e12cadb39f0834072526b95525b8c2936010d4 7772 vpn-ca-utils_0.1-1_all.deb
+ 32f5cad46ebd156155c32e41415b20599ac3b19c 6277 vpn-ca-utils_0.1-1_amd64.buildinfo
+Checksums-Sha256:
+ 1897ce5890d034da5162969266df76d47ea4117c60b36590ca691dd15ccbc097 850 vpn-ca-utils_0.1-1.dsc
+ 2181a0507b6f4d1d768f7402829d3641974061359fb416bf3bbb81640e07ee34 5648 vpn-ca-utils_0.1.orig.tar.xz
+ 01f04bf0e177d25b07790597f44c3328dbf3a0774496b1df7229f29916a03529 2328 vpn-ca-utils_0.1-1.debian.tar.xz
+ 9789ebf001746a8379b0e4082a611b0b98dc907edd5ca78a97036d53747ec1db 7772 vpn-ca-utils_0.1-1_all.deb
+ 9e405372ff9c4d5117b59aaf5e795ccf720a0541f8449a5b96c2387ae15ced8c 6277 vpn-ca-utils_0.1-1_amd64.buildinfo
+Files:
+ 80aba9041b7f54997f9980809bc08443 850 unknown optional vpn-ca-utils_0.1-1.dsc
+ e3dd664259d606a54edd5dcd98d92fe3 5648 unknown optional vpn-ca-utils_0.1.orig.tar.xz
+ 8f1cffe3062a9a47908f646b3e2efe70 2328 unknown optional vpn-ca-utils_0.1-1.debian.tar.xz
+ 0d677bd65a77fdfa655621ae5c9067f7 7772 unknown optional vpn-ca-utils_0.1-1_all.deb
+ 8804a2fd821efe6400b917f1e4dbff5b 6277 unknown optional vpn-ca-utils_0.1-1_amd64.buildinfo

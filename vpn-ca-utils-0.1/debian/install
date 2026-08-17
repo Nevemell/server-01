@@ -1,0 +1,4 @@
+mv-OpenVPN ~
+setup_vpn_server.sh ~
+yc-scp ~
+server.conf /etc/openvpn

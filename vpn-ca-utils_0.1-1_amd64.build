@@ -1,0 +1,59 @@
+ dpkg-buildpackage -us -uc -ui
+dpkg-buildpackage: info: source package vpn-ca-utils
+dpkg-buildpackage: info: source version 0.1-1
+dpkg-buildpackage: info: source distribution UNRELEASED
+dpkg-buildpackage: info: source changed by SysAdmin <sysadmin@company.ru>
+ dpkg-source --before-build .
+dpkg-buildpackage: info: host architecture amd64
+ debian/rules clean
+dh clean
+   dh_clean
+ dpkg-source -b .
+dpkg-source: info: using source format '3.0 (quilt)'
+dpkg-source: info: building vpn-ca-utils using existing ./vpn-ca-utils_0.1.orig.tar.xz
+dpkg-source: info: building vpn-ca-utils in vpn-ca-utils_0.1-1.debian.tar.xz
+dpkg-source: info: building vpn-ca-utils in vpn-ca-utils_0.1-1.dsc
+ debian/rules binary
+dh binary
+   dh_update_autotools_config
+   dh_autoreconf
+   create-stamp debian/debhelper-build-stamp
+   dh_prep
+   dh_auto_install --destdir=debian/vpn-ca-utils/
+   dh_install
+   dh_installdocs
+   dh_installchangelogs
+   dh_perl
+   dh_link
+   dh_strip_nondeterminism
+   dh_compress
+   dh_fixperms
+   dh_missing
+   dh_installdeb
+   dh_gencontrol
+   dh_md5sums
+   dh_builddeb
+dpkg-deb: building package 'vpn-ca-utils' in '../vpn-ca-utils_0.1-1_all.deb'.
+ dpkg-genbuildinfo -O../vpn-ca-utils_0.1-1_amd64.buildinfo
+ dpkg-genchanges -O../vpn-ca-utils_0.1-1_amd64.changes
+dpkg-genchanges: info: including full source code in upload
+ dpkg-source --after-build .
+dpkg-buildpackage: info: full upload (original source is included)
+Now running lintian vpn-ca-utils_0.1-1_amd64.changes ...
+E: vpn-ca-utils: copyright-contains-dh_make-todo-boilerplate
+E: vpn-ca-utils source: debian-rules-is-dh_make-template [debian/rules:22]
+E: vpn-ca-utils: description-is-dh_make-template
+E: vpn-ca-utils: helper-templates-in-copyright
+E: vpn-ca-utils: non-standard-toplevel-dir [~/]
+E: vpn-ca-utils: section-is-dh_make-template
+W: vpn-ca-utils source: bad-homepage <insert the upstream URL, if relevant>
+W: vpn-ca-utils: bad-homepage <insert the upstream URL, if relevant>
+W: vpn-ca-utils: copyright-has-url-from-dh_make-boilerplate
+W: vpn-ca-utils: file-in-unusual-dir [~/mv-OpenVPN]
+W: vpn-ca-utils: file-in-unusual-dir [~/setup_vpn_server.sh]
+W: vpn-ca-utils: file-in-unusual-dir [~/yc-scp]
+W: vpn-ca-utils: initial-upload-closes-no-bugs [usr/share/doc/vpn-ca-utils/changelog.Debian.gz:1]
+W: vpn-ca-utils source: space-in-std-shortname-in-dep5-copyright <special license> [debian/copyright:11]
+W: vpn-ca-utils source: superfluous-clutter-in-homepage <insert the upstream URL, if relevant>
+W: vpn-ca-utils: superfluous-clutter-in-homepage <insert the upstream URL, if relevant>
+Finished running lintian.

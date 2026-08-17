@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+mv /tmp/ca.crt /etc/openvpn/server/
+mv /tmp/server.crt /etc/openvpn/server/
+chown root:root /etc/openvpn/server/*
+chmod 644 /etc/openvpn/server/ca.crt
+chmod 644 /etc/openvpn/server/server.crt
+chmod 600 /etc/openvpn/server/server.key
