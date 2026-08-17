@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /home/sysadmin/easy-rsa 
+# Убедиться, что CA уже создан:
+# ./easyrsa build-ca nopass   # только один раз, при первом создании
+
+# Импортируем запрос
+./easyrsa import-req /tmp/server.req server
+
+# Подписываем как серверный сертификат
+./easyrsa sign-req server server
+
+# С CA на сервер OpenVPN:
+scp -i '$3' /home/sysadmin/easy-rsa/pki/ca.crt $1@$2:/tmp/
+scp -i '$3' /home/sysadmin/easy-rsa/pki/issued/server.crt $1@$2:/tmp/
+
