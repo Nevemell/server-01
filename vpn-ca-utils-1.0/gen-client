@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+CLIENT_NAME="$1"
+PKI_DIR="${PKI_DIR:-/etc/openvpn/easy-rsa}"
+OUTPUT_DIR="${OUTPUT_DIR:-~/openvpn-clients/clients}"
+
+cd "$PKI_DIR"
+./easyrsa gen-req "$CLIENT_NAME" nopass
+# Запрос нужно подписать
+# После подписи скопируйте ca.crt, client.crt, client.key в OUTPUT_DIR
+
+mkdir -p "$OUTPUT_DIR/$CLIENT_NAME"
+# Здесь должны быть уже подписанные client.crt и client.key, а также ca.crt и ta.key
+
+cat /usr/share/vpn-ca/client.conf.template | sed "s/<VPN_SERVER_IP>/$(hostname -I | awk '{print $1}')/" > "$OUTPUT_DIR/$CLIENT_NAME/client.ovpn"
+
+cp ca.crt client.crt client.key ta.key "$OUTPUT_DIR/$CLIENT_NAME/"

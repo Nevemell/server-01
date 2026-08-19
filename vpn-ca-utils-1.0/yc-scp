@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+scp -i '$3' ~/easy-rsa/pki/reqs/server.req $1@$2:/tmp/server.req
+sudo ssh -i '$3' $1@$2 'ls -l /tmp/server.req'

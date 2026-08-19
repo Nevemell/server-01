@@ -1,0 +1,11 @@
+Package: vpn-ca-utils
+Version: 1.0
+Architecture: all
+Maintainer: SysAdmin <sysadmin@company.ru>
+Installed-Size: 31
+Section: unknown
+Priority: optional
+Multi-Arch: foreign
+Homepage: <insert the upstream URL, if relevant>
+Description: <insert up to 60 chars description>
+ <Insert long description, indented with spaces.>

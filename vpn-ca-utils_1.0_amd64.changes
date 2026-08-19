@@ -1,0 +1,35 @@
+Format: 1.8
+Date: Wed, 19 Aug 2026 06:10:24 +0000
+Source: vpn-ca-utils
+Binary: vpn-ca-utils
+Built-For-Profiles: noudeb
+Architecture: source all
+Version: 1.0
+Distribution: UNRELEASED
+Urgency: medium
+Maintainer: SysAdmin <sysadmin@company.ru>
+Changed-By: SysAdmin <sysadmin@company.ru>
+Description:
+ vpn-ca-utils - <insert up to 60 chars description>
+Changes:
+ vpn-ca-utils (1.0) UNRELEASED; urgency=medium
+ .
+   * Initial release.
+   * New version: scripts and templates for generating client certificates have been added.
+   * New version: scripts and templates for generating client
+     certificates have been added.
+Checksums-Sha1:
+ 191cd4b825a5f8829ffe141c757577d7f4409497 578 vpn-ca-utils_1.0.dsc
+ 1b70a0ff721154e0425a398e92e93ef8f4ab7b28 8032 vpn-ca-utils_1.0.tar.xz
+ cdaf357a1ab8e77874daafc8638e3099a8184f9d 8286 vpn-ca-utils_1.0_all.deb
+ 3069f406f22a4bbbab82fefaba97606b4fe11313 6263 vpn-ca-utils_1.0_amd64.buildinfo
+Checksums-Sha256:
+ 2ca82992ef704b689f4bb48f4f1768f8d84cf719e72d138183409c466307c87b 578 vpn-ca-utils_1.0.dsc
+ 5f2780fca74b4ac039e96fe99677b586f51aedb0bec094d81ed26783f877c8d6 8032 vpn-ca-utils_1.0.tar.xz
+ 6aeed5ee6294cf6bf50786a05ab628b11f68170f40daa7a54c7e42abe07bfd59 8286 vpn-ca-utils_1.0_all.deb
+ aeab79d8ccf53d24da6aec666a627896c7c17c0fabc6ed1f218948d66c3d05a9 6263 vpn-ca-utils_1.0_amd64.buildinfo
+Files:
+ f7a535adeb2521b01674def9da4a10b7 578 unknown optional vpn-ca-utils_1.0.dsc
+ a3f995fde5f471df224e1da6041c3d00 8032 unknown optional vpn-ca-utils_1.0.tar.xz
+ 1dd7cf36f87b133f782ccfb8b43c4807 8286 unknown optional vpn-ca-utils_1.0_all.deb
+ 7bceaa70720896787a27f1e2c947225c 6263 unknown optional vpn-ca-utils_1.0_amd64.buildinfo
