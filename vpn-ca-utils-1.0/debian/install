@@ -1,6 +1,0 @@
-mv-OpenVPN ~
-setup_vpn_server.sh ~
-yc-scp ~
-server.conf /etc/openvpn
-gen-client ~
-client.conf.template ~
