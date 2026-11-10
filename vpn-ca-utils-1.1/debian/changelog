@@ -1,9 +1,0 @@
-vpn-ca-utils (1.1) UNRELEASED; urgency=medium
-
-  * Initial release.
-  * New version: scripts and templates for generating client certificates have been added.
-  * New version: scripts and templates for generating client
-    certificates have been added.
-  * Обновление Скрипта setup_vpn_server
-
- -- SysAdmin <sysadmin@company.ru>  Mon, 31 Aug 2026 10:14:26 +0000
