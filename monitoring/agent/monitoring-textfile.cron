@@ -1,0 +1,3 @@
+*/5 * * * * root /usr/lib/monitoring-agent/openvpn-cert-expiry.sh >/dev/null 2>&1
+*/5 * * * * root /usr/lib/monitoring-agent/reboot-required.sh >/dev/null 2>&1
+* * * * * root /usr/lib/monitoring-agent/openvpn-listen.sh >/dev/null 2>&1

@@ -1,0 +1,9 @@
+groups:
+- name: openvpn-listen
+  rules:
+  - alert: OpenVPNNotListening
+    expr: openvpn_listening == 0
+    for: 2m
+    labels: {severity: critical}
+    annotations:
+      summary: "{{ $labels.instance }}: OpenVPN не слушает порт {{ $labels.port }}/{{ $labels.proto }}"

@@ -1,0 +1,12 @@
+[Unit]
+Description=Firewall for Prometheus exporters
+After=network-pre.target
+Before=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/lib/monitoring-agent/monitoring-firewall.sh
+
+[Install]
+WantedBy=multi-user.target

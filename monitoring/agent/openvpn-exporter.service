@@ -1,0 +1,11 @@
+[Unit]
+Description=OpenVPN Prometheus exporter
+After=openvpn-server@server.service
+
+[Service]
+User=nobody
+ExecStart=/usr/local/bin/openvpn_exporter --openvpn.status_paths /var/log/openvpn/openvpn-status.log --web.listen-address :9176
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

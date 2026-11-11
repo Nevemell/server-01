@@ -1,0 +1,62 @@
+groups:
+- name: openvpn
+  rules:
+  - alert: OpenVPNServiceDown
+    expr: node_systemd_unit_state{name=~"openvpn(-server)?(@.+)?\\.service",state="active"} == 0
+    for: 1m
+    labels: {severity: critical}
+    annotations:
+      summary: "{{ $labels.instance }}: сервис {{ $labels.name }} не активен"
+  - alert: OpenVPNExporterDown
+    expr: openvpn_up == 0
+    for: 2m
+    labels: {severity: critical}
+    annotations:
+      summary: "{{ $labels.instance }}: OpenVPN не работает или status-файл не обновляется"
+  - alert: OpenVPNPortUnreachable
+    expr: probe_success{job="blackbox-openvpn"} == 0
+    for: 2m
+    labels: {severity: critical}
+    annotations:
+      summary: "{{ $labels.instance }}: порт OpenVPN недоступен снаружи"
+  - alert: OpenVPNTunDown
+    expr: node_network_up{device="tun0"} == 0
+    for: 2m
+    labels: {severity: critical}
+    annotations:
+      summary: "{{ $labels.instance }}: интерфейс tun0 не поднят"
+  - alert: OpenVPNNoClients
+    expr: openvpn_server_connected_clients == 0
+    for: 30m
+    labels: {severity: warning}
+    annotations:
+      summary: "{{ $labels.instance }}: нет подключённых VPN-клиентов 30 минут"
+  - alert: OpenVPNClientsDrop
+    expr: openvpn_server_connected_clients < 0.5 * (openvpn_server_connected_clients offset 10m) and (openvpn_server_connected_clients offset 10m) >= 4
+    labels: {severity: warning}
+    annotations:
+      summary: "{{ $labels.instance }}: число VPN-клиентов упало более чем на 50% за 10 минут"
+  - alert: OpenVPNTooManyClients
+    expr: openvpn_server_connected_clients > 100
+    for: 10m
+    labels: {severity: warning}
+    annotations:
+      summary: "{{ $labels.instance }}: подключено {{ $value }} клиентов"
+  - alert: OpenVPNTrafficAnomaly
+    expr: (rate(node_network_receive_bytes_total{device="tun0"}[5m]) + rate(node_network_transmit_bytes_total{device="tun0"}[5m])) * 8 > 100e6
+    for: 15m
+    labels: {severity: warning}
+    annotations:
+      summary: "{{ $labels.instance }}: трафик на tun0 > 100 Мбит/с"
+  - alert: OpenVPNCertExpiringSoon
+    expr: (openvpn_cert_expiry_timestamp_seconds - time()) / 86400 < 30
+    for: 1h
+    labels: {severity: warning}
+    annotations:
+      summary: "{{ $labels.instance }}: сертификат {{ $labels.file }} истекает через {{ $value | printf \"%.0f\" }} дн."
+  - alert: OpenVPNCertExpiringCritical
+    expr: (openvpn_cert_expiry_timestamp_seconds - time()) / 86400 < 7
+    for: 10m
+    labels: {severity: critical}
+    annotations:
+      summary: "{{ $labels.instance }}: сертификат {{ $labels.file }} истекает через {{ $value | printf \"%.0f\" }} дн.!"

@@ -1,0 +1,31 @@
+global:
+  smtp_smarthost: 'smtp.example.com:587'
+  smtp_from: 'alertmanager@example.com'
+  smtp_auth_username: 'alertmanager@example.com'
+  smtp_auth_password_file: '/etc/monitoring/smtp_password'
+  smtp_require_tls: true
+
+route:
+  receiver: email-team
+  group_by: ['alertname', 'instance']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    - matchers: ['severity="critical"']
+      receiver: email-team
+      repeat_interval: 1h
+    - matchers: ['severity="info"']
+      receiver: email-team
+      repeat_interval: 24h
+
+inhibit_rules:
+  - source_matchers: ['alertname="InstanceDown"']
+    target_matchers: ['severity=~"warning|info"']
+    equal: ['instance']
+
+receivers:
+  - name: email-team
+    email_configs:
+      - to: 'ops@example.com'
+        send_resolved: true
