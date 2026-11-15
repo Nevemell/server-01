@@ -1,0 +1,16 @@
+[Unit]
+Description=Ежедневный бэкап (БД, apt-репозиторий, Git-зеркало, конфиги) в restic
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/backup-storage/backup.conf
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/backup-storage-run
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=6h
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=read-only
+ProtectSystem=full

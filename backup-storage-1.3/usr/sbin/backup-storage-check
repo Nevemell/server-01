@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Еженедельная проверка: целостность репозитория + тестовое восстановление дампа БД.
+set -euo pipefail
+
+CONF=${BACKUP_STORAGE_CONF:-/etc/backup-storage/backup.conf}
+# shellcheck disable=SC1090
+. "$CONF"
+export RESTIC_PASSWORD_FILE
+: "${STATE_DIR:=/var/lib/backup-storage}"
+: "${METRIC_DIR:=/var/lib/node_exporter/textfile}"
+
+mkdir -p "$METRIC_DIR"
+RESTORE_DIR=$(mktemp -d /var/tmp/backup-restore.XXXXXX)
+trap 'rm -rf "$RESTORE_DIR"' EXIT
+log() { echo "[$(date -Is)] $*"; }
+
+log "restic check (10% данных) $RESTIC_LOCAL"
+restic -r "$RESTIC_LOCAL" check --read-data-subset=10%
+
+if [ -n "${RESTIC_REMOTE:-}" ]; then
+    log "restic check $RESTIC_REMOTE"
+    restic -r "$RESTIC_REMOTE" check
+fi
+
+if [ -n "${PG_DB:-}" ]; then
+    log "тестовое восстановление дампа БД"
+    restic -r "$RESTIC_LOCAL" restore latest --target "$RESTORE_DIR" \
+        --include "$STATE_DIR/${PG_DB}.dump"
+    pg_restore --list "$RESTORE_DIR$STATE_DIR/${PG_DB}.dump" >/dev/null
+else
+    log "тестовое восстановление файла /etc/hostname из последнего снапшота"
+    restic -r "$RESTIC_LOCAL" restore latest --target "$RESTORE_DIR" --include /etc/hostname
+    if [ ! -s "$RESTORE_DIR/etc/hostname" ]; then
+        echo "восстановленный /etc/hostname пуст или отсутствует (входит ли /etc в BACKUP_PATHS?)" >&2
+        exit 1
+    fi
+fi
+
+now=$(date +%s)
+cat > "$METRIC_DIR/backup_check.prom.tmp" <<EOM
+# TYPE backup_last_check_success_timestamp_seconds gauge
+backup_last_check_success_timestamp_seconds $now
+EOM
+mv "$METRIC_DIR/backup_check.prom.tmp" "$METRIC_DIR/backup_check.prom"
+log "проверка пройдена"

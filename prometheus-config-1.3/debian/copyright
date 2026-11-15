@@ -1,0 +1,10 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: prometheus-config
+
+Files: *
+Copyright: 2026 Ваше Имя <you@example.com>
+License: Expat
+ Permission is hereby granted, free of charge, to any person obtaining a
+ copy of this software and associated documentation files, to deal in the
+ software without restriction. The software is provided "as is", without
+ warranty of any kind.

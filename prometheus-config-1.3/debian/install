@@ -1,0 +1,2 @@
+etc/prometheus/rules/*.yml etc/prometheus/rules/
+usr/sbin/prometheus-config-check usr/sbin/

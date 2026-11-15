@@ -1,0 +1,16 @@
+[Unit]
+Description=Проверка целостности бэкапов и тестовое восстановление
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/backup-storage/backup.conf
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/backup-storage-check
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=12h
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=read-only
+ProtectSystem=full

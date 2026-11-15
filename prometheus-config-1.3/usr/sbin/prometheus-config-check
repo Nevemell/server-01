@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Проверка prometheus-config на ВМ с Prometheus.
+# Требуется: curl, jq (apt install jq), promtool (в пакете prometheus).
+# Запуск: sudo ./check-monitoring.sh
+set -u
+
+PROM=${PROM:-http://localhost:9090}
+RULES=/etc/prometheus/rules/backup.yml
+APT_RULES=/etc/prometheus/rules/backup-apt.yml
+MAX_AGE=$((26*3600))
+fail=0
+
+ok()  { echo "[ OK ] $*"; }
+warn() { echo "[WARN] $*"; }
+bad() { echo "[FAIL] $*"; fail=1; }
+check() { local d=$1; shift; if "$@" >/dev/null 2>&1; then ok "$d"; else bad "$d"; fi; }
+
+echo "== Пакет и файлы =="
+check "пакет prometheus-config установлен" dpkg -s prometheus-config
+check "файл правил backup.yml на месте"    test -r "$RULES"
+check "файл правил backup-apt.yml на месте" test -r "$APT_RULES"
+check "prometheus.yml не принадлежит нашему пакету" \
+    bash -c '! dpkg -L prometheus-config | grep -qx /etc/prometheus/prometheus.yml'
+check "в prometheus.yml есть rule_files"   grep -Eq '^\s*rule_files:' /etc/prometheus/prometheus.yml
+
+echo "== Валидность конфигурации =="
+check "promtool: правила валидны" promtool check rules "$RULES" "$APT_RULES"
+check "promtool: конфиг валиден"  promtool check config /etc/prometheus/prometheus.yml
+
+echo "== Сервис =="
+check "сервис prometheus активен" systemctl is-active --quiet prometheus
+check "prometheus отвечает ready"  curl -fsS "$PROM/-/ready"
+
+echo "== Правила загружены =="
+n=$(curl -fsS "$PROM/api/v1/rules" 2>/dev/null \
+    | jq '[.data.groups[] | select(.name=="backup-storage" or .name=="backup-apt") | .rules[]] | length' 2>/dev/null)
+if [ "${n:-0}" -eq 6 ]; then ok "загружено 6 правил (backup-storage и backup-apt)"
+else bad "загружено правил: ${n:-0}, ожидалось 6 (проверьте rule_files и reload)"; fi
+
+echo "== Цели scrape =="
+for job in backup-host blackbox-apt; do
+    h=$(curl -fsS "$PROM/api/v1/targets?state=active" 2>/dev/null \
+        | jq -r --arg j "$job" '[.data.activeTargets[] | select(.labels.job==$j) | .health] | .[0] // "missing"')
+    if [ "$h" = "up" ]; then ok "job $job: up"
+    elif [ "$job" = "blackbox-apt" ]; then warn "job $job: $h (необязателен, пока нет своего apt-репозитория)"
+    else bad "job $job: $h"; fi
+done
+
+echo "== Метрика бэкапа =="
+age=$(curl -fsS --data-urlencode 'query=time() - backup_last_success_timestamp_seconds' \
+      "$PROM/api/v1/query" 2>/dev/null | jq -r '.data.result[0].value[1] // empty')
+if [ -z "$age" ]; then
+    bad "метрика backup_last_success_timestamp_seconds не найдена (textfile collector, права на файл .prom)"
+elif awk -v a="$age" -v m="$MAX_AGE" 'BEGIN{exit !(a<m)}'; then
+    ok "последний успешный бэкап был $(awk -v a="$age" 'BEGIN{printf "%.1f", a/3600}') ч назад"
+else
+    bad "последний бэкап был $(awk -v a="$age" 'BEGIN{printf "%.1f", a/3600}') ч назад (порог 26 ч)"
+fi
+
+echo "== Сейчас в состоянии firing/pending =="
+curl -fsS "$PROM/api/v1/alerts" 2>/dev/null \
+    | jq -r '.data.alerts[] | "  \(.state)\t\(.labels.alertname)\t\(.labels.instance // "-")"'
+
+echo
+if [ "$fail" -eq 0 ]; then echo "ИТОГ: всё в порядке"; else echo "ИТОГ: есть ошибки (см. [FAIL])"; fi
+exit "$fail"

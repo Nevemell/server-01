@@ -1,0 +1,37 @@
+groups:
+- name: backup-storage
+  rules:
+  - alert: BackupTooOld
+    expr: time() - backup_last_success_timestamp_seconds > 26*3600
+    for: 10m
+    labels: {severity: critical}
+    annotations:
+      summary: "Бэкап не выполнялся более 26 часов на {{ $labels.instance }}"
+
+  - alert: BackupCheckTooOld
+    expr: time() - backup_last_check_success_timestamp_seconds > 8*24*3600
+    for: 10m
+    labels: {severity: warning}
+    annotations:
+      summary: "Проверка целостности бэкапов не выполнялась более 8 суток на {{ $labels.instance }}"
+
+  - alert: BackupHostDown
+    expr: up{job="backup-host"} == 0
+    for: 5m
+    labels: {severity: critical}
+    annotations:
+      summary: "Хост бэкапов {{ $labels.instance }} недоступен"
+
+  - alert: BackupDiskAlmostFull
+    expr: node_filesystem_avail_bytes{job="backup-host",mountpoint=~"/|/srv"} / node_filesystem_size_bytes{job="backup-host",mountpoint=~"/|/srv"} < 0.15
+    for: 10m
+    labels: {severity: warning}
+    annotations:
+      summary: "На {{ $labels.instance }} свободно менее 15% диска {{ $labels.mountpoint }}"
+
+  - alert: BackupDiskWillFillIn24h
+    expr: predict_linear(node_filesystem_avail_bytes{job="backup-host",mountpoint=~"/|/srv"}[6h], 24*3600) < 0
+    for: 30m
+    labels: {severity: warning}
+    annotations:
+      summary: "Диск {{ $labels.mountpoint }} на {{ $labels.instance }} заполнится в ближайшие 24 часа"

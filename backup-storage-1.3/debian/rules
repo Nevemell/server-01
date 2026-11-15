@@ -1,0 +1,8 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+# таймеры не включаем и не запускаем автоматически
+override_dh_installsystemd:
+	dh_installsystemd --no-enable --no-start --no-restart-after-upgrade --name=backup-storage backup-storage.service backup-storage.timer
+	dh_installsystemd --no-enable --no-start --no-restart-after-upgrade --name=backup-storage-check backup-storage-check.service backup-storage-check.timer

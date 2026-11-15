@@ -1,0 +1,6 @@
+etc/backup-storage/backup.conf etc/backup-storage/
+usr/sbin/backup-storage-run usr/sbin/
+usr/sbin/backup-storage-check usr/sbin/
+lib/systemd/system/*.service lib/systemd/system/
+lib/systemd/system/*.timer lib/systemd/system/
+usr/sbin/backup-storage-selfcheck usr/sbin/

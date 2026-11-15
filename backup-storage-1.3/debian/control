@@ -1,0 +1,18 @@
+Source: backup-storage
+Section: admin
+Priority: optional
+Maintainer: Ваше Имя <you@example.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+
+Package: backup-storage
+Architecture: all
+Depends: restic, systemd, ${misc:Depends}
+Recommends: prometheus-node-exporter, postgresql-client
+Description: Резервное копирование на restic с метриками для Prometheus
+ Скрипты backup-storage-run и backup-storage-check, systemd-сервисы и
+ таймеры для ежедневного бэкапа (БД, apt-репозиторий, Git-зеркало,
+ конфигурации) и еженедельной проверки восстановления. Результаты
+ записываются в textfile-метрики node_exporter.
+ Таймеры после установки НЕ включаются: сначала нужно инициализировать
+ репозитории restic и настроить /etc/backup-storage/backup.conf.

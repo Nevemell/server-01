@@ -1,0 +1,174 @@
+#!/usr/bin/env bash
+# Проверка работоспособности backup-storage на backup-хосте.
+# Использование: sudo backup-storage-selfcheck [--deep]
+#   --deep  дополнительно запускает backup-storage-check (check + тестовое восстановление)
+# Код возврата: 0 всё хорошо, 1 есть предупреждения, 2 есть ошибки.
+set -uo pipefail
+
+CONF=${BACKUP_STORAGE_CONF:-/etc/backup-storage/backup.conf}
+NE_URL=${NE_URL:-http://localhost:9100/metrics}
+MAX_BACKUP_AGE=${MAX_BACKUP_AGE:-93600}     # 26 часов
+MAX_CHECK_AGE=${MAX_CHECK_AGE:-691200}      # 8 суток
+DEEP=0; [ "${1:-}" = "--deep" ] && DEEP=1
+fails=0; warns=0
+
+ok()   { printf '[ OK ] %s\n' "$*"; }
+warn() { printf '[WARN] %s\n' "$*"; warns=$((warns + 1)); }
+bad()  { printf '[FAIL] %s\n' "$*"; fails=$((fails + 1)); }
+have() { command -v "$1" >/dev/null 2>&1; }
+hours() { awk -v s="$1" 'BEGIN{printf "%.1f", s/3600}'; }
+
+if [ "$(id -u)" -ne 0 ] && [ -z "${SELFCHECK_ALLOW_NONROOT:-}" ]; then
+    echo "Запустите от root: sudo $0" >&2; exit 2
+fi
+
+echo "== Конфигурация и инструменты =="
+if [ ! -r "$CONF" ]; then bad "нет доступа к $CONF"; exit 2; fi
+# shellcheck disable=SC1090
+. "$CONF"
+: "${STATE_DIR:=/var/lib/backup-storage}"
+: "${METRIC_DIR:=/var/lib/node_exporter/textfile}"
+for v in RESTIC_LOCAL RESTIC_PASSWORD_FILE BACKUP_PATHS; do
+    if [ -n "${!v:-}" ]; then ok "$v задан"; else bad "$v не задан в $CONF"; fi
+done
+tools="restic"; [ -n "${PG_DB:-}" ] && tools="restic pg_dump pg_restore"
+for t in $tools; do
+    if have "$t"; then ok "установлен $t"; else bad "не найден $t"; fi
+done
+if [ -s "${RESTIC_PASSWORD_FILE:-/nonexistent}" ]; then
+    mode=$(stat -c %a "$RESTIC_PASSWORD_FILE")
+    if [ "$mode" = 600 ] || [ "$mode" = 400 ]; then ok "файл пароля restic есть, права $mode"
+    else warn "права файла пароля $mode, нужны 600"; fi
+else
+    bad "файл пароля restic отсутствует или пуст: ${RESTIC_PASSWORD_FILE:-?}"
+fi
+export RESTIC_PASSWORD_FILE
+
+echo "== Репозитории restic =="
+snap_epoch() {   # печатает время новейшего снапшота (epoch); пусто, если снапшотов нет
+    local j t
+    j=$(timeout 120 restic -r "$1" snapshots --latest 1 --json 2>/dev/null) || return 1
+    t=$(printf '%s' "$j" | grep -o '"time":"[^"]*"' | cut -d'"' -f4 | sort | tail -n1)
+    [ -n "$t" ] && date -d "$t" +%s
+    return 0
+}
+check_repo() {
+    local name=$1 repo=$2 ts age
+    if ! timeout 120 restic -r "$repo" cat config >/dev/null 2>&1; then
+        bad "$name: репозиторий недоступен или неверный пароль ($repo)"; return
+    fi
+    ok "$name: репозиторий открывается"
+    if ! ts=$(snap_epoch "$repo"); then bad "$name: не удалось получить список снапшотов"; return; fi
+    if [ -z "$ts" ]; then bad "$name: снапшотов нет"; return; fi
+    age=$(( $(date +%s) - ts ))
+    if [ "$age" -le "$MAX_BACKUP_AGE" ]; then ok "$name: последний снапшот $(hours "$age") ч назад"
+    else bad "$name: последний снапшот $(hours "$age") ч назад (порог 26 ч)"; fi
+}
+if have restic && [ -n "${RESTIC_LOCAL:-}" ]; then
+    check_repo "локальный" "$RESTIC_LOCAL"
+    [ -n "${RESTIC_REMOTE:-}" ] && check_repo "внешний" "$RESTIC_REMOTE"
+else
+    bad "проверка репозиториев пропущена (нет restic или RESTIC_LOCAL)"
+fi
+
+echo "== Диск =="
+dir=${RESTIC_LOCAL:-/}
+while [ ! -d "$dir" ] && [ "$dir" != "/" ]; do dir=$(dirname "$dir"); done
+use=$(df --output=pcent "$dir" 2>/dev/null | tail -n1 | tr -dc '0-9')
+if [ -n "$use" ]; then
+    free=$((100 - use))
+    if [ "$free" -lt 5 ]; then bad "на диске с $dir свободно $free%"
+    elif [ "$free" -lt 15 ]; then warn "на диске с $dir свободно $free% (порог алерта 15%)"
+    else ok "на диске с $dir свободно $free%"; fi
+fi
+if have findmnt && findmnt -n /srv >/dev/null 2>&1; then ok "/srv смонтирован отдельно (метка mountpoint=\"/srv\" для алертов)"
+else warn "/srv не отдельная точка монтирования: алерты по диску ищут mountpoint=\"/srv\""; fi
+
+echo "== PostgreSQL =="
+if [ -z "${PG_DB:-}" ]; then
+    ok "PostgreSQL не используется (PG_DB пуст)"
+elif have psql && have pg_dump; then
+    sv=$(timeout 30 psql -At -d "$PG_DB" -c 'show server_version_num' 2>/dev/null)
+    if [ -z "$sv" ]; then
+        bad "база $PG_DB недоступна (проверьте PGHOST/PGUSER/.pgpass в $CONF)"
+    else
+        smaj=$((sv / 10000))
+        cmaj=$(pg_dump --version | grep -oE '[0-9]+' | head -n1)
+        if [ "$smaj" -gt "${cmaj:-0}" ]; then bad "версия сервера $smaj новее pg_dump $cmaj: дамп не получится"
+        else ok "база $PG_DB доступна (сервер $smaj, pg_dump $cmaj)"; fi
+    fi
+else
+    warn "проверка БД пропущена (нет psql/pg_dump)"
+fi
+
+echo "== systemd =="
+for t in backup-storage.timer backup-storage-check.timer; do
+    if systemctl is-enabled --quiet "$t" 2>/dev/null && systemctl is-active --quiet "$t" 2>/dev/null; then
+        ok "$t включён и активен"
+    else
+        bad "$t не включён: systemctl enable --now $t"
+    fi
+done
+for s in backup-storage.service backup-storage-check.service; do
+    res=$(systemctl show -p Result --value "$s" 2>/dev/null || true)
+    case "$res" in
+        success) ok "$s: последний запуск успешен (или ещё не запускался)" ;;
+        "")      warn "$s: состояние неизвестно" ;;
+        *)       bad "$s: последний запуск завершился: $res (journalctl -u $s)" ;;
+    esac
+done
+next=$(systemctl list-timers 'backup-storage*' --no-legend 2>/dev/null | awk '{print $1,$2,$3}' | head -n1)
+[ -n "$next" ] && echo "       ближайший запуск: $next"
+
+echo "== Метрики для Prometheus =="
+now=$(date +%s)
+metric_age() {   # file name max label severity_if_missing
+    local f=$1 n=$2 max=$3 label=$4 miss=$5 v age
+    if [ ! -r "$f" ]; then
+        if [ "$miss" = bad ]; then bad "$label: нет файла $f"; else warn "$label: файла $f ещё нет"; fi
+        return
+    fi
+    v=$(awk -v n="$n" '$1==n {print $2}' "$f" | head -n1)
+    if [ -z "$v" ]; then bad "$label: в $f нет метрики $n"; return; fi
+    age=$((now - ${v%.*}))
+    if [ "$age" -le "$max" ]; then ok "$label: $(hours "$age") ч назад"
+    else bad "$label: $(hours "$age") ч назад (порог $(hours "$max") ч)"; fi
+}
+metric_age "$METRIC_DIR/backup.prom" backup_last_success_timestamp_seconds "$MAX_BACKUP_AGE" "последний бэкап" bad
+metric_age "$METRIC_DIR/backup_check.prom" backup_last_check_success_timestamp_seconds "$MAX_CHECK_AGE" "последняя проверка" warn
+
+if systemctl is-active --quiet prometheus-node-exporter 2>/dev/null; then
+    ok "prometheus-node-exporter активен"
+    if have curl; then
+        body=$(curl -fsS --max-time 10 "$NE_URL" 2>/dev/null || true)
+        if [ -z "$body" ]; then
+            bad "node_exporter не отвечает на $NE_URL"
+        else
+            # awk читает вход целиком: grep -q закрыл бы канал раньше времени, и pipefail дал бы ложную ошибку
+            if printf '%s\n' "$body" | awk '/^backup_last_success_timestamp_seconds/{f=1} END{exit !f}'; then
+                ok "метрика бэкапа видна в node_exporter"
+            else
+                bad "node_exporter не отдаёт backup_last_success_timestamp_seconds (проверьте textfile-каталог: METRIC_DIR=$METRIC_DIR)"
+            fi
+            err=$(printf '%s\n' "$body" | awk '$1=="node_textfile_scrape_error"{print $2}')
+            if [ -z "$err" ]; then warn "метрики node_textfile_scrape_error нет: textfile-сборщик, возможно, выключен"
+            elif [ "$err" = "0" ]; then ok "textfile-сборщик без ошибок"
+            else bad "textfile-сборщик сообщает об ошибке (формат .prom-файлов)"; fi
+        fi
+    else
+        warn "curl не установлен, видимость метрик не проверена"
+    fi
+else
+    bad "prometheus-node-exporter не запущен"
+fi
+
+if [ "$DEEP" -eq 1 ]; then
+    echo "== Глубокая проверка (check + тестовое восстановление) =="
+    if /usr/sbin/backup-storage-check >/tmp/backup-storage-deep.log 2>&1; then ok "backup-storage-check прошёл"
+    else bad "backup-storage-check завершился с ошибкой, лог: /tmp/backup-storage-deep.log"; fi
+fi
+
+echo
+if [ "$fails" -gt 0 ]; then echo "ИТОГ: ошибок $fails, предупреждений $warns"; exit 2
+elif [ "$warns" -gt 0 ]; then echo "ИТОГ: работает, предупреждений $warns"; exit 1
+else echo "ИТОГ: всё в порядке"; exit 0; fi

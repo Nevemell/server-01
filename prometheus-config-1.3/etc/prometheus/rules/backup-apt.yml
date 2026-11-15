@@ -1,0 +1,9 @@
+groups:
+- name: backup-apt
+  rules:
+  - alert: AptRepoUnavailable
+    expr: probe_success{job="blackbox-apt"} == 0
+    for: 5m
+    labels: {severity: warning}
+    annotations:
+      summary: "apt-репозиторий {{ $labels.instance }} недоступен"

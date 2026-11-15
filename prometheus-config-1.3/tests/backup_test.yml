@@ -1,0 +1,39 @@
+rule_files:
+  - ../etc/prometheus/rules/backup.yml
+
+evaluation_interval: 1m
+
+tests:
+  # Бэкапа не было 30 часов: BackupTooOld должен сработать
+  - interval: 1m
+    input_series:
+      - series: 'backup_last_success_timestamp_seconds{instance="backup-host:9100"}'
+        values: '0x1800'
+    alert_rule_test:
+      - eval_time: 30h
+        alertname: BackupTooOld
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              instance: "backup-host:9100"
+            exp_annotations:
+              summary: "Бэкап не выполнялся более 26 часов на backup-host:9100"
+      - eval_time: 1h
+        alertname: BackupTooOld
+        exp_alerts: []
+
+  # Хост бэкапов недоступен 10 минут: BackupHostDown
+  - interval: 1m
+    input_series:
+      - series: 'up{job="backup-host", instance="backup-host:9100"}'
+        values: '0x30'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: BackupHostDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              job: backup-host
+              instance: "backup-host:9100"
+            exp_annotations:
+              summary: "Хост бэкапов backup-host:9100 недоступен"

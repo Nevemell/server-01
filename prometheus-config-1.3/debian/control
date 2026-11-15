@@ -1,0 +1,17 @@
+Source: prometheus-config
+Section: admin
+Priority: optional
+Maintainer: Ваше Имя <you@example.com>
+Build-Depends: debhelper-compat (= 13), prometheus
+Standards-Version: 4.6.2
+
+Package: prometheus-config
+Architecture: all
+Depends: prometheus, ${misc:Depends}
+Recommends: jq, curl
+Description: Правила алертов Prometheus для хранилища резервных копий
+ Содержит файл правил /etc/prometheus/rules/backup.yml (алерты на
+ бэкапы, диск backup-хоста и доступность apt-репозитория) и скрипт
+ prometheus-config-check для проверки работы мониторинга.
+ Файл prometheus.yml принадлежит пакету prometheus и этим пакетом
+ не изменяется: в нём нужно один раз добавить rule_files и job'ы.

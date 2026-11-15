@@ -1,0 +1,19 @@
+#!/bin/sh
+set -e
+
+#DEBHELPER#
+
+case "$1" in
+    configure)
+        mkdir -p /var/lib/backup-storage /var/lib/node_exporter/textfile /etc/restic
+        chmod 750 /var/lib/backup-storage
+        chmod 640 /etc/backup-storage/backup.conf
+        systemctl daemon-reload >/dev/null 2>&1 || true
+        echo "backup-storage: таймеры не включены. Порядок: инициализировать репозитории restic," >&2
+        echo "backup-storage: поправить /etc/backup-storage/backup.conf, затем" >&2
+        echo "backup-storage:   systemctl enable --now backup-storage.timer backup-storage-check.timer" >&2
+        echo "backup-storage: проверка работоспособности: sudo backup-storage-selfcheck" >&2
+        ;;
+esac
+
+exit 0

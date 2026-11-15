@@ -1,0 +1,7 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+override_dh_auto_test:
+	promtool check rules etc/prometheus/rules/*.yml
+	promtool test rules tests/backup_test.yml

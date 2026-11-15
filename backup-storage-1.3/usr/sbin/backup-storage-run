@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Ежедневный бэкап: (дамп БД, если PG_DB задан) + каталоги -> restic (локально) -> копия во внешний репозиторий.
+set -euo pipefail
+
+CONF=${BACKUP_STORAGE_CONF:-/etc/backup-storage/backup.conf}
+# shellcheck disable=SC1090
+. "$CONF"
+export RESTIC_PASSWORD_FILE
+export RESTIC_FROM_PASSWORD_FILE="$RESTIC_PASSWORD_FILE"
+: "${STATE_DIR:=/var/lib/backup-storage}"
+: "${METRIC_DIR:=/var/lib/node_exporter/textfile}"
+: "${BACKUP_PATHS:?BACKUP_PATHS пуст: укажите, что бэкапить, в $CONF}"
+
+mkdir -p "$STATE_DIR" "$METRIC_DIR"
+log() { echo "[$(date -Is)] $*"; }
+start=$(date +%s)
+
+DUMP=""
+if [ -n "${PG_DB:-}" ]; then
+    DUMP="$STATE_DIR/${PG_DB}.dump"
+    trap 'rm -f "$DUMP"' EXIT
+    log "pg_dump $PG_DB"
+    pg_dump -Fc -f "$DUMP" "$PG_DB"
+else
+    log "PG_DB не задан: дамп БД пропущен"
+fi
+
+log "restic backup -> $RESTIC_LOCAL"
+# shellcheck disable=SC2086
+restic -r "$RESTIC_LOCAL" backup --tag daily ${DUMP:+"$DUMP"} $BACKUP_PATHS
+
+log "restic forget --prune"
+restic -r "$RESTIC_LOCAL" forget --prune \
+    --keep-daily "${KEEP_DAILY:-7}" --keep-weekly "${KEEP_WEEKLY:-4}" --keep-monthly "${KEEP_MONTHLY:-6}"
+
+if [ -n "${RESTIC_REMOTE:-}" ]; then
+    log "restic copy -> $RESTIC_REMOTE"
+    restic -r "$RESTIC_REMOTE" copy --from-repo "$RESTIC_LOCAL"
+else
+    log "RESTIC_REMOTE не задан: внешняя копия пропущена"
+fi
+
+now=$(date +%s)
+cat > "$METRIC_DIR/backup.prom.tmp" <<EOM
+# TYPE backup_last_success_timestamp_seconds gauge
+backup_last_success_timestamp_seconds $now
+# TYPE backup_last_duration_seconds gauge
+backup_last_duration_seconds $((now - start))
+EOM
+mv "$METRIC_DIR/backup.prom.tmp" "$METRIC_DIR/backup.prom"
+log "готово за $((now - start)) с"
